@@ -248,16 +248,27 @@ curl -s http://localhost:8000/customers/CUST-001
 docker compose exec db psql -U postgres -d customer-risk-api \
   -c "SELECT customer_id, risk_tier, risk_factors FROM customer_risk_profiles ORDER BY customer_id;"
 ```
-**DB output:** PENDING
+**DB output:**
+```
+ customer_id | risk_tier | risk_factors
+-------------+-----------+---------------------------------------------------------------
+ CUST-001    | LOW       | {"account in good standing","consistent payment history","low utilisation rate"}
+ CUST-004    | MEDIUM    | {"two late payments in past year","moderate utilisation"}
+ CUST-007    | HIGH      | {"three missed payments","account referred to collections"}
+```
 
 **API responses:**
 ```
-curl -s -H "X-API-Key: $API_KEY" http://localhost:8000/customers/CUST-001
-curl -s -H "X-API-Key: $API_KEY" http://localhost:8000/customers/CUST-004
-curl -s -H "X-API-Key: $API_KEY" http://localhost:8000/customers/CUST-007
+curl -s -H "X-API-Key: dev-api-key-2026" http://localhost:8000/customers/CUST-001
+{"customer_id":"CUST-001","risk_tier":"LOW","risk_factors":["account in good standing","consistent payment history","low utilisation rate"]}
+
+curl -s -H "X-API-Key: dev-api-key-2026" http://localhost:8000/customers/CUST-004
+{"customer_id":"CUST-004","risk_tier":"MEDIUM","risk_factors":["two late payments in past year","moderate utilisation"]}
+
+curl -s -H "X-API-Key: dev-api-key-2026" http://localhost:8000/customers/CUST-007
+{"customer_id":"CUST-007","risk_tier":"HIGH","risk_factors":["three missed payments","account referred to collections"]}
 ```
-**API output:** PENDING
-**Result:** PENDING — field-by-field match to be confirmed
+**Result: PASS** — customer_id, risk_tier, and risk_factors match DB rows exactly for all three tiers (INV-01).
 
 ---
 
