@@ -1,7 +1,7 @@
 import os
 
 import psycopg2
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
 
 app = FastAPI()
@@ -37,5 +37,17 @@ def root():
 
 
 @app.get("/customers/{customer_id}")
-def get_customer(customer_id: str):
-    return {"message": "placeholder"}
+def get_customer(customer_id: str, api_key: str = Depends(verify_api_key)):
+    conn = get_db_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT customer_id, risk_tier, risk_factors FROM customer_risk_profiles WHERE customer_id = %s",
+            (customer_id,),
+        )
+        row = cur.fetchone()
+        if row is None:
+            raise HTTPException(status_code=404, detail="Customer not found")
+        return {"customer_id": row[0], "risk_tier": row[1], "risk_factors": row[2]}
+    finally:
+        conn.close()
