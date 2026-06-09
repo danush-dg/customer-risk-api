@@ -1,10 +1,16 @@
 import os
 
 import psycopg2
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
 
 app = FastAPI()
+
+
+async def verify_api_key(api_key: str = Header(None, alias="X-API-Key")):
+    valid_key = os.environ.get("API_KEY")
+    if not api_key or api_key != valid_key:
+        raise HTTPException(status_code=401, detail="Unauthorized")
 
 
 def get_db_connection():
