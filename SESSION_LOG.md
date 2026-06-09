@@ -34,3 +34,25 @@
 - `docker compose up db -d` — container started, image pulled
 - Queried `customer_risk_profiles` — 9 rows returned, all three tiers present, no errors
 - Result: PASS
+
+---
+
+## Session 2 — FastAPI Application Core
+**Branch:** `session/s02_api`
+**Date:** 2026-06-09
+**Status:** IN PROGRESS
+
+### T2.1 — Write requirements.txt and Dockerfile
+- Status: PENDING
+
+### T2.2 — Write the FastAPI application skeleton
+- Status: PENDING
+
+### T2.3 — Write the database connection function
+- Status: PENDING
+
+### T2.4 — Write the API key authentication dependency
+- Status: PENDING
+
+### Integration Check
+- Status: PENDING
