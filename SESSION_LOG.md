@@ -193,7 +193,13 @@
 - Status: COMPLETE
 
 ### T5.3 — Write README.md
-- Status: PENDING
+- Wrote `customer-risk-api/README.md` with six required sections
+- Sections: What it is, Prerequisites, Setup, Usage, Teardown, Stack
+- Curl examples use `$API_KEY` — no hardcoded values
+- `docker compose down -v` documented with explicit warning about omitting `-v`
+- No references to PBVI, sessions, invariants, or internal planning artifacts
+- Invariants touched: None directly
+- Status: COMPLETE
 
 ### Integration Check (Final Gate)
 - Status: PENDING
