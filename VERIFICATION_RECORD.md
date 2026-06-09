@@ -219,26 +219,35 @@ curl -s -H "X-API-Key: wrong" http://localhost:8000/customers/CUST-001
 ### T3.1 — Authenticated request, existing customer (200)
 **Command:**
 ```
-curl -s -H "X-API-Key: $API_KEY" http://localhost:8000/customers/CUST-001
+curl -s -H "X-API-Key: dev-api-key-2026" http://localhost:8000/customers/CUST-001
 ```
-**Output:** PENDING
-**Result:** PENDING
+**Output:**
+```
+{"customer_id":"CUST-001","risk_tier":"LOW","risk_factors":["account in good standing","consistent payment history","low utilisation rate"]}
+```
+**Result: PASS** — 200, exactly three fields, correct types (INV-02, INV-05, INV-06).
 
 ### T3.1 — Authenticated request, non-existent customer (404)
 **Command:**
 ```
-curl -s -H "X-API-Key: $API_KEY" http://localhost:8000/customers/CUST-999
+curl -s -H "X-API-Key: dev-api-key-2026" http://localhost:8000/customers/CUST-999
 ```
-**Output:** PENDING
-**Result:** PENDING
+**Output:**
+```
+{"detail":"Customer not found"}
+```
+**Result: PASS** — 404 with static literal (INV-02).
 
 ### T3.1 — Unauthenticated request (401)
 **Command:**
 ```
 curl -s http://localhost:8000/customers/CUST-001
 ```
-**Output:** PENDING
-**Result:** PENDING
+**Output:**
+```
+{"detail":"Unauthorized"}
+```
+**Result: PASS** — 401 with static literal, no DB interaction (INV-07, INV-12).
 
 ---
 
@@ -276,26 +285,40 @@ curl -s -H "X-API-Key: dev-api-key-2026" http://localhost:8000/customers/CUST-00
 **Command:**
 ```
 docker compose stop db
-curl -s -H "X-API-Key: $API_KEY" http://localhost:8000/customers/CUST-001
-curl -si -H "X-API-Key: $API_KEY" http://localhost:8000/customers/CUST-001 | findstr /i content-type
-docker compose start db
-curl -s -H "X-API-Key: $API_KEY" http://localhost:8000/customers/CUST-001
+curl -s -H "X-API-Key: dev-api-key-2026" http://localhost:8000/customers/CUST-001
+curl -si -H "X-API-Key: dev-api-key-2026" http://localhost:8000/customers/CUST-001 | grep -i content-type
+docker compose start db && sleep 8
+curl -s -H "X-API-Key: dev-api-key-2026" http://localhost:8000/customers/CUST-001
 ```
-**Output:** PENDING
-**Result:** PENDING
+**Output:**
+```
+{"detail":"Internal server error"}
+content-type: application/json
+{"customer_id":"CUST-001","risk_tier":"LOW","risk_factors":["account in good standing","consistent payment history","low utilisation rate"]}
+```
+**Result: PASS** — 500 body is exactly `{"detail":"Internal server error"}`, Content-Type is application/json, no psycopg2 detail exposed, normal operation resumes after DB restart (INV-09).
 
 ---
 
 ### Session 3 Integration Check
 **Commands:**
 ```
-curl -s -H "X-API-Key: $API_KEY" http://localhost:8000/customers/CUST-001
-curl -s -H "X-API-Key: $API_KEY" http://localhost:8000/customers/CUST-004
-curl -s -H "X-API-Key: $API_KEY" http://localhost:8000/customers/CUST-007
-curl -s -H "X-API-Key: $API_KEY" http://localhost:8000/customers/CUST-999
+curl -s -H "X-API-Key: dev-api-key-2026" http://localhost:8000/customers/CUST-001
+curl -s -H "X-API-Key: dev-api-key-2026" http://localhost:8000/customers/CUST-004
+curl -s -H "X-API-Key: dev-api-key-2026" http://localhost:8000/customers/CUST-007
+curl -s -H "X-API-Key: dev-api-key-2026" http://localhost:8000/customers/CUST-999
 curl -s http://localhost:8000/customers/CUST-001
 curl -s -H "X-API-Key: wrong" http://localhost:8000/customers/CUST-001
 curl -s http://localhost:8000/health
 ```
-**Output:** PENDING
-**Result:** PENDING
+**Output:**
+```
+{"customer_id":"CUST-001","risk_tier":"LOW","risk_factors":["account in good standing","consistent payment history","low utilisation rate"]}
+{"customer_id":"CUST-004","risk_tier":"MEDIUM","risk_factors":["two late payments in past year","moderate utilisation"]}
+{"customer_id":"CUST-007","risk_tier":"HIGH","risk_factors":["three missed payments","account referred to collections"]}
+{"detail":"Customer not found"}
+{"detail":"Unauthorized"}
+{"detail":"Unauthorized"}
+{"status":"ok"}
+```
+**Result: PASS** — all three tiers return correct data, 404 and both 401 cases return identical static literals, health returns exactly `{"status":"ok"}`.
