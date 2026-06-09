@@ -353,3 +353,73 @@ curl -s http://localhost:8000/health
 | Integration check | PASS | All of the above |
 
 All predictions matched actual outputs. Code review confirmed: static SQL, `Depends(verify_api_key)` wired first, `finally: conn.close()` present, three-key response dict, no tier string transformation.
+
+---
+
+## Session 4 — Browser UI and Error State Tests
+
+### T4.1 — GET / returns 200 with Content-Type: text/html
+**Prediction:** 200, `Content-Type: text/html`, page contains `<input` and a submit button.
+**Command:**
+```
+curl -si http://localhost:8000/ | grep -i content-type
+curl -s http://localhost:8000/ | grep -i "<input"
+```
+**Output:** PENDING
+**Result:** PENDING
+
+### T4.1 — No external script references
+**Prediction:** No `src=` attributes referencing external hosts.
+**Command:**
+```
+curl -s http://localhost:8000/ | grep -i "src=" | grep -v "localhost"
+```
+**Output:** PENDING (expect no output)
+**Result:** PENDING
+
+### T4.1 — Relative fetch path
+**Prediction:** JavaScript uses `/customers/${id}` or equivalent relative path — no hardcoded host.
+**Command:**
+```
+curl -s http://localhost:8000/ | grep -i "customers/"
+```
+**Output:** PENDING
+**Result:** PENDING
+
+### T4.1 — Code Review
+- **No tier remapping:** PENDING — confirm no `switch`, no label map, no conditional on `risk_tier` value
+- **Relative fetch URL:** PENDING — confirm `/customers/${id}`, not `http://...`
+- **X-API-Key header:** PENDING — confirm `headers: {'X-API-Key': ...}` in fetch call
+- **All inline:** PENDING — confirm no `StaticFiles` mount, no external `<script src=...>`
+
+### T4.2 — Automated error state tests (5 cases)
+**Prediction:** 5 tests collected, 5 passed.
+**Command:**
+```
+python -m pytest api/test_errors.py -v
+```
+**Output:** PENDING
+**Result:** PENDING
+
+---
+
+### Session 4 Integration Check
+**Commands:**
+```
+python -m pytest api/test_errors.py -v
+curl -s http://localhost:8000/ | grep -i "<input"
+```
+**Output:** PENDING
+**Result:** PENDING
+
+---
+
+### Session 4 Verification Verdict
+
+**Verdict: PENDING**
+
+| Task | Result | Invariants verified |
+|---|---|---|
+| T4.1 — Browser UI | PENDING | INV-11 |
+| T4.2 — Error state tests | PENDING | INV-02, INV-07, INV-08, INV-12 |
+| Integration check | PENDING | — |

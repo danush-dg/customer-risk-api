@@ -125,3 +125,19 @@
 - No code changes remain open — T3.2 and T3.3 were verification-only
 - Branch `session/s03_lookup` ready to merge
 - Next: Session 4 — Browser UI and error state tests (`session/s04_ui`)
+
+---
+
+## Session 4 — Browser UI and Error State Tests
+**Branch:** `session/s04_ui`
+**Date:** 2026-06-09
+**Status:** IN PROGRESS
+
+### T4.1 — Implement the browser UI
+- Status: PENDING
+
+### T4.2 — Write automated error state tests
+- Status: PENDING
+
+### Integration Check
+- Status: PENDING
