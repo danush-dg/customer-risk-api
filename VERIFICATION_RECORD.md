@@ -216,7 +216,15 @@ curl -s -H "X-API-Key: wrong" http://localhost:8000/customers/CUST-001
 
 ## Session 3 — Customer Lookup Endpoint
 
+### T3.1 — Code Review
+- **SQL query** (`main.py:44-45`): static string literal, single `%s`, passed as `(customer_id,)` tuple — no f-string, no `.format()`, no concatenation. INV-04 PASS.
+- **Auth dependency** (`main.py:40`): `api_key: str = Depends(verify_api_key)` — auth is the first FastAPI dependency resolved before route body executes. INV-07 PASS.
+- **`finally: conn.close()`** (`main.py:52-53`): present, executes regardless of 404 or success path. Connection not leaked.
+- **Response shape** (`main.py:51`): dict literal with exactly three keys — `customer_id`, `risk_tier`, `risk_factors` — no extras. INV-05 PASS.
+- **No string transformation**: `row[1]` (risk_tier) and `row[2]` (risk_factors) returned as-is from the DB cursor. INV-06 PASS.
+
 ### T3.1 — Authenticated request, existing customer (200)
+**Prediction:** 200 with `{"customer_id":"CUST-001","risk_tier":"LOW","risk_factors":[...]}` — three fields, list type for factors.
 **Command:**
 ```
 curl -s -H "X-API-Key: dev-api-key-2026" http://localhost:8000/customers/CUST-001
@@ -228,6 +236,7 @@ curl -s -H "X-API-Key: dev-api-key-2026" http://localhost:8000/customers/CUST-00
 **Result: PASS** — 200, exactly three fields, correct types (INV-02, INV-05, INV-06).
 
 ### T3.1 — Authenticated request, non-existent customer (404)
+**Prediction:** 404 with `{"detail":"Customer not found"}`.
 **Command:**
 ```
 curl -s -H "X-API-Key: dev-api-key-2026" http://localhost:8000/customers/CUST-999
@@ -239,6 +248,7 @@ curl -s -H "X-API-Key: dev-api-key-2026" http://localhost:8000/customers/CUST-99
 **Result: PASS** — 404 with static literal (INV-02).
 
 ### T3.1 — Unauthenticated request (401)
+**Prediction:** 401 with `{"detail":"Unauthorized"}` before any DB interaction.
 **Command:**
 ```
 curl -s http://localhost:8000/customers/CUST-001
@@ -252,6 +262,11 @@ curl -s http://localhost:8000/customers/CUST-001
 ---
 
 ### T3.2 — Direct DB vs API comparison
+**Predictions (from `db/init.sql` seed data, recorded before API calls):**
+- CUST-001: expected `risk_tier=LOW`, 3-element factors array
+- CUST-004: expected `risk_tier=MEDIUM`, 2-element factors array
+- CUST-007: expected `risk_tier=HIGH`, 2-element factors array
+
 **DB query:**
 ```
 docker compose exec db psql -U postgres -d customer-risk-api \
@@ -282,6 +297,7 @@ curl -s -H "X-API-Key: dev-api-key-2026" http://localhost:8000/customers/CUST-00
 ---
 
 ### T3.3 — DB down returns static 500 literal
+**Prediction:** `{"detail":"Internal server error"}` with `Content-Type: application/json` — no psycopg2 exception text, no table names.
 **Command:**
 ```
 docker compose stop db
@@ -322,3 +338,18 @@ curl -s http://localhost:8000/health
 {"status":"ok"}
 ```
 **Result: PASS** — all three tiers return correct data, 404 and both 401 cases return identical static literals, health returns exactly `{"status":"ok"}`.
+
+---
+
+### Session 3 Verification Verdict
+
+**Verdict: PASS**
+
+| Task | Result | Invariants verified |
+|---|---|---|
+| T3.1 — Customer lookup endpoint | PASS | INV-01, INV-02, INV-04, INV-05, INV-06, INV-07 |
+| T3.2 — DB vs API data correctness | PASS | INV-01 |
+| T3.3 — DB error handling | PASS | INV-09 |
+| Integration check | PASS | All of the above |
+
+All predictions matched actual outputs. Code review confirmed: static SQL, `Depends(verify_api_key)` wired first, `finally: conn.close()` present, three-key response dict, no tier string transformation.
