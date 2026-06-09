@@ -448,3 +448,78 @@ python -m pytest api/test_errors.py -v  →  5 passed
 | Integration check | PASS | All of the above |
 
 All predictions matched actual outputs. Code review confirmed: no tier remapping, relative fetch path, X-API-Key header present, all inline, risk_factors order preserved, error detail passed through unchanged.
+
+---
+
+## Session 5 — Hardening, Injection Tests, Full Invariant Run
+
+### T5.1 — SQL injection tests (5 payloads)
+**Prediction:** All 5 payloads return 404, none return 500 or 200; row count after equals row count before.
+**Command:**
+```
+cd customer-risk-api && python -m pytest api/test_injection.py -v
+```
+**Output:** PENDING
+**Result:** PENDING
+
+### T5.2 — Full invariant verification script
+**Prediction:** All automated invariant tests pass from a running stack.
+**Command:**
+```
+cd customer-risk-api && python -m pytest api/test_invariants.py -v
+```
+**Output:** PENDING
+**Result:** PENDING
+
+### T5.2 — Manual: INV-10 operational isolation
+**Prediction:** No `external:` in docker-compose.yml; no `requests`/`httpx`/`urllib` imports in main.py.
+**Commands:**
+```
+grep -i "external" customer-risk-api/docker-compose.yml || echo "No external networks — PASS"
+grep -E "import requests|import httpx|import urllib" customer-risk-api/api/main.py || echo "No outbound imports — PASS"
+```
+**Output:** PENDING
+**Result:** PENDING
+
+### T5.2 — Manual: INV-11 UI fidelity
+**Prediction:** DOM values for CUST-001 match fetch() JSON response exactly — no transformation visible in devtools.
+**Method:** Browser devtools console fetch comparison at `http://localhost:8000`
+**Output:** PENDING
+**Result:** PENDING
+
+### T5.3 — README.md
+**Prediction:** README contains `docker compose down -v` with `-v` warning; curl examples use `$API_KEY`; no internal planning references.
+**Command:**
+```
+grep "\-v" customer-risk-api/README.md && echo "Teardown flag documented — PASS"
+```
+**Output:** PENDING
+**Result:** PENDING
+
+---
+
+### Session 5 Final Gate — Full cold-start invariant run
+**Commands:**
+```
+cd customer-risk-api
+docker compose down -v
+docker compose up -d && sleep 10
+python -m pytest api/test_invariants.py api/test_errors.py api/test_injection.py -v
+```
+**Output:** PENDING
+**Result:** PENDING
+
+---
+
+### Session 5 Verification Verdict
+
+**Verdict: PENDING**
+
+| Task | Result | Invariants verified |
+|---|---|---|
+| T5.1 — SQL injection tests | PENDING | INV-03, INV-04 |
+| T5.2 — Full invariant script (automated) | PENDING | INV-01 through INV-09, INV-12, INV-13 |
+| T5.2 — INV-10 manual | PENDING | INV-10 |
+| T5.2 — INV-11 manual | PENDING | INV-11 |
+| T5.3 — README | PENDING | — |
+| Final gate cold-start | PENDING | All |

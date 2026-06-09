@@ -163,3 +163,22 @@
 - `test_errors.py` is the first automated test artifact — runs from host against live container
 - Branch `session/s04_ui` ready to merge
 - Next: Session 5 — Hardening, injection tests, full invariant run (`session/s05_harden`)
+
+---
+
+## Session 5 — Hardening, Injection Tests, Full Invariant Run
+**Branch:** `session/s05_harden`
+**Date:** 2026-06-09
+**Status:** IN PROGRESS
+
+### T5.1 — Write SQL injection tests
+- Status: PENDING
+
+### T5.2 — Write the full invariant verification script
+- Status: PENDING
+
+### T5.3 — Write README.md
+- Status: PENDING
+
+### Integration Check (Final Gate)
+- Status: PENDING
