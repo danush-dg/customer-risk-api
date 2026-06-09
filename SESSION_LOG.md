@@ -43,16 +43,39 @@
 **Status:** IN PROGRESS
 
 ### T2.1 — Write requirements.txt and Dockerfile
-- Status: PENDING
+- `requirements.txt`: `fastapi`, `uvicorn`, `psycopg2-binary` — no version pins, no extras
+- `Dockerfile`: `FROM python:3.11-slim`, WORKDIR `/app`, copies and installs requirements, exposes 8000, CMD uvicorn
+- Build verified: `docker compose build api` completed with no errors
+- Commit: `[S2.T1] add: requirements.txt and Dockerfile — verification: PASS`
 
 ### T2.2 — Write the FastAPI application skeleton
-- Status: PENDING
+- `main.py` with exactly 3 routes: `GET /health`, `GET /`, `GET /customers/{customer_id}`
+- `/health` returns `{"status": "ok"}` — no extra fields (INV-13)
+- `/` returns `HTMLResponse("UI coming soon")`
+- `/customers/{customer_id}` returns `{"message": "placeholder"}` — no auth yet
+- Verified: health shape assert PASS inside container
+- Invariants touched: INV-13
+- Commit: `[S2.T2] add: FastAPI application skeleton — verification: PASS — invariants: INV-13`
 
 ### T2.3 — Write the database connection function
-- Status: PENDING
+- `get_db_connection()` reads 5 env vars, calls `psycopg2.connect()` directly
+- On failure: catches all exceptions, raises `HTTPException(500, "Internal server error")` static literal
+- Success case: PASS — connection returned when DB is up
+- Failure case: PASS — correct HTTPException raised when DB is stopped
+- Invariants touched: INV-09
+- Commit: `[S2.T3] add: database connection function — verification: PASS — invariants: INV-09`
 
 ### T2.4 — Write the API key authentication dependency
-- Status: PENDING
+- `async def verify_api_key(api_key: str = Header(None, alias="X-API-Key"))`
+- Reads `API_KEY` from env; uses `==` comparison only; `not api_key` guard covers None and empty string
+- All 7 test cases PASS: correct key, wrong key, None, empty string, prefix, trailing whitespace, identical 401 detail
+- Not wired to any route (T3.1 does that)
+- Invariants touched: INV-07, INV-08, INV-09, INV-12
+- Commit: `[S2.T4] add: api key auth dependency — verification: PASS — invariants: INV-07, INV-08, INV-09, INV-12`
 
 ### Integration Check
-- Status: PENDING
+- `GET /health` → `{"status":"ok"}` — PASS
+- `GET /customers/CUST-001` (no key) → `{"message":"placeholder"}`, no 500 — PASS
+- `GET /customers/CUST-001` (wrong key) → `{"message":"placeholder"}`, no 500 — PASS
+- Note: auth placeholder responses expected — `verify_api_key` not yet wired (T3.1)
+- Result: PASS
