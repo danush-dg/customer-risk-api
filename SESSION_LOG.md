@@ -131,13 +131,35 @@
 ## Session 4 — Browser UI and Error State Tests
 **Branch:** `session/s04_ui`
 **Date:** 2026-06-09
-**Status:** IN PROGRESS
+**Status:** COMPLETE
 
 ### T4.1 — Implement the browser UI
-- Status: PENDING
+- Replaced `HTMLResponse("UI coming soon")` with full inline HTML page in `_HTML` module-level constant
+- Two inputs: API Key (password type) and Customer ID (text)
+- Submit button + Enter-key listener; result `<div id="result">`
+- `fetch('/customers/' + encodeURIComponent(id), { headers: { 'X-API-Key': key } })` — relative path
+- On 200: renders `customer_id`, `risk_tier`, `risk_factors` directly from `data.*` — no transformation
+- On error: renders `data.detail` directly — covers 401, 404, 500
+- No external scripts, no CDN, no framework; all HTML/CSS/JS inline in `main.py`
+- Invariants touched: INV-11
+- Commit: `138e641` — `[S4.T1] add: browser UI — verification: PASS — invariants: INV-11`
 
 ### T4.2 — Write automated error state tests
-- Status: PENDING
+- Created `api/test_errors.py` using `unittest` + `requests`
+- Reads `API_KEY` and `BASE_URL` from env; `BASE_URL` defaults to `http://localhost:8000`
+- 5 test cases: no key → 401, wrong key → 401, empty key → 401, CUST-999 → 404, no-key/wrong-key bodies identical
+- No DB reads; self-contained on env vars
+- `pytest` and `requests` installed on host (`pip install pytest requests`)
+- Invariants touched: INV-02, INV-07, INV-08, INV-12
+- Commit: `6d7b1a3` — `[S4.T2] add: error state tests — verification: PASS — invariants: INV-02, INV-07, INV-08, INV-12`
 
 ### Integration Check
-- Status: PENDING
+- Automated: `python -m pytest api/test_errors.py -v` — 5 collected, 5 passed
+- Manual UI: `http://localhost:8000` — CUST-001/004/007 values match API responses; CUST-999 displays `Customer not found`
+- Result: PASS
+
+### Session Completion
+- All two tasks complete, all invariants verified
+- `test_errors.py` is the first automated test artifact — runs from host against live container
+- Branch `session/s04_ui` ready to merge
+- Next: Session 5 — Hardening, injection tests, full invariant run (`session/s05_harden`)
