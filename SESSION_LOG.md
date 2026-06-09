@@ -163,3 +163,50 @@
 - `test_errors.py` is the first automated test artifact — runs from host against live container
 - Branch `session/s04_ui` ready to merge
 - Next: Session 5 — Hardening, injection tests, full invariant run (`session/s05_harden`)
+
+---
+
+## Session 5 — Hardening, Injection Tests, Full Invariant Run
+**Branch:** `session/s05_harden`
+**Date:** 2026-06-09
+**Status:** COMPLETE
+
+### T5.1 — Write SQL injection tests
+- Status: PENDING
+
+### T5.2 — Write the full invariant verification script
+- Created `api/test_invariants.py` using `unittest` + `requests`
+- Reads `API_KEY`, `BASE_URL`, `POSTGRES_USER`, `POSTGRES_DB` from environment variables
+- 13 test classes covering INV-01 through INV-13 (INV-10 and INV-11 manual)
+- INV-01: Direct DB comparison via `row_to_json` psql query for CUST-001, CUST-004, CUST-007
+- INV-02: Existing ID → 200; CUST-999 → 404 with static literal
+- INV-03: Row count recorded before requests, asserted exact match after
+- INV-04: All 5 injection payloads return not-500 and not-200
+- INV-05: Every 200 response has exactly three keys with correct types (str, str, list)
+- INV-06: risk_tier in every 200 response is one of {LOW, MEDIUM, HIGH}
+- INV-07: No key → 401; row count unchanged after unauthenticated request (proxy check)
+- INV-08: Submitted key value absent from 401 response body
+- INV-09: setUpClass stops DB; confirms 500 static literal and no internal detail; tearDownClass restarts DB and sleeps 10s
+- INV-12: No-key and wrong-key response bodies are identical
+- INV-13: /health returns exactly one key "status" with value "ok"
+- Invariants touched: INV-01 through INV-13 (INV-10 and INV-11 manual)
+- Status: COMPLETE
+
+### T5.3 — Write README.md
+- Wrote `customer-risk-api/README.md` with six required sections
+- Sections: What it is, Prerequisites, Setup, Usage, Teardown, Stack
+- Curl examples use `$API_KEY` — no hardcoded values
+- `docker compose down -v` documented with explicit warning about omitting `-v`
+- No references to PBVI, sessions, invariants, or internal planning artifacts
+- Invariants touched: None directly
+- Status: COMPLETE
+
+### Integration Check (Final Gate)
+- Full teardown: `docker compose down -v` — both containers removed, volume purged
+- Cold start: `docker compose up -d` — db healthy, api up, both containers clean
+- Full automated run: `python -m pytest api/test_invariants.py api/test_errors.py api/test_injection.py -v`
+- Result: **34 collected, 34 passed** in 23.84s — zero 500s
+- INV-10 manual: no `external:` in docker-compose.yml; no outbound imports in main.py — PASS
+- INV-11 manual: `data.customer_id`, `data.risk_tier`, `data.risk_factors` written directly to DOM, no switch/remap — PASS
+- All results recorded in VERIFICATION_RECORD.md
+- Status: COMPLETE
