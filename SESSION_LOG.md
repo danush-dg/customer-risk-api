@@ -175,7 +175,22 @@
 - Status: PENDING
 
 ### T5.2 — Write the full invariant verification script
-- Status: PENDING
+- Created `api/test_invariants.py` using `unittest` + `requests`
+- Reads `API_KEY`, `BASE_URL`, `POSTGRES_USER`, `POSTGRES_DB` from environment variables
+- 13 test classes covering INV-01 through INV-13 (INV-10 and INV-11 manual)
+- INV-01: Direct DB comparison via `row_to_json` psql query for CUST-001, CUST-004, CUST-007
+- INV-02: Existing ID → 200; CUST-999 → 404 with static literal
+- INV-03: Row count recorded before requests, asserted exact match after
+- INV-04: All 5 injection payloads return not-500 and not-200
+- INV-05: Every 200 response has exactly three keys with correct types (str, str, list)
+- INV-06: risk_tier in every 200 response is one of {LOW, MEDIUM, HIGH}
+- INV-07: No key → 401; row count unchanged after unauthenticated request (proxy check)
+- INV-08: Submitted key value absent from 401 response body
+- INV-09: setUpClass stops DB; confirms 500 static literal and no internal detail; tearDownClass restarts DB and sleeps 10s
+- INV-12: No-key and wrong-key response bodies are identical
+- INV-13: /health returns exactly one key "status" with value "ok"
+- Invariants touched: INV-01 through INV-13 (INV-10 and INV-11 manual)
+- Status: COMPLETE
 
 ### T5.3 — Write README.md
 - Status: PENDING
