@@ -40,7 +40,7 @@
 ## Session 2 — FastAPI Application Core
 **Branch:** `session/s02_api`
 **Date:** 2026-06-09
-**Status:** IN PROGRESS
+**Status:** COMPLETE
 
 ### T2.1 — Write requirements.txt and Dockerfile
 - `requirements.txt`: `fastapi`, `uvicorn`, `psycopg2-binary` — no version pins, no extras
@@ -79,3 +79,49 @@
 - `GET /customers/CUST-001` (wrong key) → `{"message":"placeholder"}`, no 500 — PASS
 - Note: auth placeholder responses expected — `verify_api_key` not yet wired (T3.1)
 - Result: PASS
+
+---
+
+## Session 3 — Customer Lookup Endpoint
+**Branch:** `session/s03_lookup`
+**Date:** 2026-06-09
+**Status:** COMPLETE
+
+### T3.1 — Wire auth dependency and implement customer lookup
+- Added `Depends(verify_api_key)` to `GET /customers/{customer_id}` route
+- Parameterised SELECT query: static string with single `%s`, `customer_id` passed as tuple
+- Found row → returns `{"customer_id", "risk_tier", "risk_factors"}` — exactly three keys
+- No row → `HTTPException(404, "Customer not found")`
+- `conn.close()` in `finally` block regardless of outcome
+- Removed placeholder return
+- Invariants touched: INV-01, INV-02, INV-04, INV-05, INV-06, INV-07
+- Commit: `34929c2` — `[S3.T1] add: customer lookup endpoint — verification: PASS — invariants: INV-01, INV-02, INV-04, INV-05, INV-06, INV-07`
+
+### T3.2 — Verify response values match the database directly
+- Verification-only, no code changes
+- Queried DB directly for CUST-001 (LOW), CUST-004 (MEDIUM), CUST-007 (HIGH)
+- API responses match DB rows exactly for all three fields across all three tiers
+- Invariants touched: INV-01
+- Commit: `efa3b5c` — `[S3.T2] verify: data correctness against database — verification: PASS — invariants: INV-01`
+
+### T3.3 — Verify database error handling
+- Verification-only, no code changes
+- Stopped `db` container, triggered authenticated request — returned `{"detail":"Internal server error"}` with `Content-Type: application/json`
+- No psycopg2 exception text, no table names, no connection details in response body
+- Normal operation resumed after `docker compose start db && sleep 8`
+- Invariants touched: INV-09
+- Commit: `0fd0fd0` — `[S3.T3] verify: database error handling — verification: PASS — invariants: INV-09`
+
+### Integration Check
+- CUST-001 (LOW), CUST-004 (MEDIUM), CUST-007 (HIGH) — correct data, exactly three fields each
+- CUST-999 → `{"detail":"Customer not found"}`
+- No key → `{"detail":"Unauthorized"}`
+- Wrong key → `{"detail":"Unauthorized"}` — identical to no-key response
+- `/health` → `{"status":"ok"}` — no extra fields
+- Result: PASS
+
+### Session Completion
+- All three tasks complete, all invariants verified
+- No code changes remain open — T3.2 and T3.3 were verification-only
+- Branch `session/s03_lookup` ready to merge
+- Next: Session 4 — Browser UI and error state tests (`session/s04_ui`)
