@@ -172,7 +172,13 @@
 **Status:** COMPLETE
 
 ### T5.1 — Write SQL injection tests
-- Status: PENDING
+- Created `api/test_injection.py` using `unittest` + `requests`
+- Reads `API_KEY`, `BASE_URL`, `POSTGRES_USER`, `POSTGRES_DB` from environment variables
+- 5 SQL injection payloads: DROP TABLE, OR-true bypass, UNION SELECT, stacked query, long keyword string
+- 6 test cases: 5 per-payload status checks + row count unchanged after all requests
+- All payloads correctly return 404 (not 200 or 500); parameterised query blocks all injection attempts
+- Invariants touched: INV-03, INV-04
+- Status: COMPLETE
 
 ### T5.2 — Write the full invariant verification script
 - Created `api/test_invariants.py` using `unittest` + `requests`
