@@ -79,3 +79,22 @@
 - `GET /customers/CUST-001` (wrong key) → `{"message":"placeholder"}`, no 500 — PASS
 - Note: auth placeholder responses expected — `verify_api_key` not yet wired (T3.1)
 - Result: PASS
+
+---
+
+## Session 3 — Customer Lookup Endpoint
+**Branch:** `session/s03_lookup`
+**Date:** 2026-06-09
+**Status:** IN PROGRESS
+
+### T3.1 — Wire auth dependency and implement customer lookup
+- Status: PENDING
+
+### T3.2 — Verify response values match the database directly
+- Status: PENDING (verification-only, no code changes)
+
+### T3.3 — Verify database error handling
+- Status: PENDING (verification-only, no code changes)
+
+### Integration Check
+- Status: PENDING

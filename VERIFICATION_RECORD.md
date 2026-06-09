@@ -211,3 +211,80 @@ curl -s -H "X-API-Key: wrong" http://localhost:8000/customers/CUST-001
 {"message":"placeholder"}
 ```
 **Result: PASS** — health correct, no 500s. Auth placeholder expected — `verify_api_key` not yet wired to route (T3.1).
+
+---
+
+## Session 3 — Customer Lookup Endpoint
+
+### T3.1 — Authenticated request, existing customer (200)
+**Command:**
+```
+curl -s -H "X-API-Key: $API_KEY" http://localhost:8000/customers/CUST-001
+```
+**Output:** PENDING
+**Result:** PENDING
+
+### T3.1 — Authenticated request, non-existent customer (404)
+**Command:**
+```
+curl -s -H "X-API-Key: $API_KEY" http://localhost:8000/customers/CUST-999
+```
+**Output:** PENDING
+**Result:** PENDING
+
+### T3.1 — Unauthenticated request (401)
+**Command:**
+```
+curl -s http://localhost:8000/customers/CUST-001
+```
+**Output:** PENDING
+**Result:** PENDING
+
+---
+
+### T3.2 — Direct DB vs API comparison
+**DB query:**
+```
+docker compose exec db psql -U postgres -d customer-risk-api \
+  -c "SELECT customer_id, risk_tier, risk_factors FROM customer_risk_profiles ORDER BY customer_id;"
+```
+**DB output:** PENDING
+
+**API responses:**
+```
+curl -s -H "X-API-Key: $API_KEY" http://localhost:8000/customers/CUST-001
+curl -s -H "X-API-Key: $API_KEY" http://localhost:8000/customers/CUST-004
+curl -s -H "X-API-Key: $API_KEY" http://localhost:8000/customers/CUST-007
+```
+**API output:** PENDING
+**Result:** PENDING — field-by-field match to be confirmed
+
+---
+
+### T3.3 — DB down returns static 500 literal
+**Command:**
+```
+docker compose stop db
+curl -s -H "X-API-Key: $API_KEY" http://localhost:8000/customers/CUST-001
+curl -si -H "X-API-Key: $API_KEY" http://localhost:8000/customers/CUST-001 | findstr /i content-type
+docker compose start db
+curl -s -H "X-API-Key: $API_KEY" http://localhost:8000/customers/CUST-001
+```
+**Output:** PENDING
+**Result:** PENDING
+
+---
+
+### Session 3 Integration Check
+**Commands:**
+```
+curl -s -H "X-API-Key: $API_KEY" http://localhost:8000/customers/CUST-001
+curl -s -H "X-API-Key: $API_KEY" http://localhost:8000/customers/CUST-004
+curl -s -H "X-API-Key: $API_KEY" http://localhost:8000/customers/CUST-007
+curl -s -H "X-API-Key: $API_KEY" http://localhost:8000/customers/CUST-999
+curl -s http://localhost:8000/customers/CUST-001
+curl -s -H "X-API-Key: wrong" http://localhost:8000/customers/CUST-001
+curl -s http://localhost:8000/health
+```
+**Output:** PENDING
+**Result:** PENDING
