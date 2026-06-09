@@ -169,7 +169,7 @@
 ## Session 5 — Hardening, Injection Tests, Full Invariant Run
 **Branch:** `session/s05_harden`
 **Date:** 2026-06-09
-**Status:** IN PROGRESS
+**Status:** COMPLETE
 
 ### T5.1 — Write SQL injection tests
 - Status: PENDING
@@ -202,4 +202,11 @@
 - Status: COMPLETE
 
 ### Integration Check (Final Gate)
-- Status: PENDING
+- Full teardown: `docker compose down -v` — both containers removed, volume purged
+- Cold start: `docker compose up -d` — db healthy, api up, both containers clean
+- Full automated run: `python -m pytest api/test_invariants.py api/test_errors.py api/test_injection.py -v`
+- Result: **34 collected, 34 passed** in 23.84s — zero 500s
+- INV-10 manual: no `external:` in docker-compose.yml; no outbound imports in main.py — PASS
+- INV-11 manual: `data.customer_id`, `data.risk_tier`, `data.risk_factors` written directly to DOM, no switch/remap — PASS
+- All results recorded in VERIFICATION_RECORD.md
+- Status: COMPLETE
